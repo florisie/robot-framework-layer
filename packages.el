@@ -13,15 +13,24 @@
 ;;; Code:
 
 (defconst robot-framework-packages
-  '((robot-mode :location (recipe
-                           :fetcher github
-                           :repo "davidshepherd7/robot-mode"))))
+  '((lsp-robot-framework :location local)
+    robot-mode))
+     ;; :location (recipe
+     ;;                       :fetcher github
+     ;;                       :repo "davidshepherd7/robot-mode"))))
+
+(defun robot-framework/init-lsp-robot-framework ()
+  (use-package lsp-robot-framework
+  :init (spacemacs/add-to-hook 'robot-mode-hook
+                               '(spacemacs//robot-framework-setup-lsp)))) 
 
 (defun robot-framework/init-robot-mode ()
   (use-package robot-mode
     :defer t
-    :init  (spacemacs/add-to-hook 'robot-mode-hook
-                                  '(spacemacs//robot-framework-setup-lsp))))
+    :init (spacemacs/add-to-hook 'robot-mode-hook
+                                 '(spacemacs//pyvenv-mode-set-local-virtualenv
+                                   pyvenv-tracking-mode))
+    ))
 
 
 ;;; packages.el ends here

@@ -28,7 +28,9 @@
 (defcustom lsp-robot-python-executable ""
   "Secondary python executable used to load user code and
    dependent libraries (the default is using the same python used
-   for the language server)."
+   for the language server). Typically it should point to the python
+   executable of the (virtual) environment where robot-framework and
+   additional test libraries have been installed."
   :type 'string
   :package-version '(lsp-mode . "7.1.0"))
 
@@ -100,15 +102,23 @@
 
 
 (lsp-register-client
- (make-lsp-client :new-connection (lsp-stdio-connection '("/home/floris/.virtualenvs/system-tests/bin/python3.8"
-                                                          "-u"
-                                                          "/home/floris/.vscode/extensions/robocorp.robotframework-lsp-0.16.0/src/robotframework_ls/__main__.py"
-                                                          "-v"))
-                  :activation-fn (lsp-activate-on "robot")
-                  :server-id 'robocorp))
+ (let* ((vscode-ext-dir (concat user-home-directory
+                                ;; ".vscode/extensions/"
+                                ".var/app/com.visualstudio.code/data/vscode/extensions/"
+                                ))
+        (robocorp-dir (seq-find (lambda (s)
+                                  (string-match "robocorp.robotframework-lsp" s))
+                                (directory-files vscode-ext-dir)))
+        (server-path (concat vscode-ext-dir
+                             robocorp-dir
+                             "/src/robotframework_ls/__main__.py")))
+   (message "Path for robot lsp: %s" server-path)
 
-(define-derived-mode robot-mode prog-mode "Robot")
-
-(add-to-list 'auto-mode-alist '("\\.robot\\'" . robot-mode))
+   (make-lsp-client :new-connection (lsp-stdio-connection `("/home/floris/.virtualenvs/system-tests/bin/python3.12"
+                                                            "-u"
+                                                            ,server-path
+                                                            "-v"))
+                    :activation-fn (lsp-activate-on "robot")
+                    :server-id 'robocorp)))
 
 (provide 'lsp-robot-framework)
